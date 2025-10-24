@@ -1,25 +1,279 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState, useEffect } from 'react';
+import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { fetchEmissionsData } from './services/dataService';
+import { getEmissionStatus, getStatusColor } from './utils/statusCalculator';
+import { COLORS } from './utils/constants';
+import styles from './styles/styles';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
+const App = () => {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [lastUpdate, setLastUpdate] = useState(null);
+  const [error, setError] = useState(null);
+
+  const loadData = async () => {
+    console.log('Starting to load data...');
+    console.log('REACT_APP_USE_MOCK_DATA:', process.env.REACT_APP_USE_MOCK_DATA); // DEBUG
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await fetchEmissionsData(true); // Explicitly false
+      console.log('Data loaded:', result); // DEBUG
+      console.log('First item:', result[0]); // DEBUG - Look at structure
+      setData(result);
+      setLastUpdate(new Date());
+    } catch (err) {
+      console.error('Error fetching data:', err);
+      setError('Failed to load emissions data. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+    const interval = setInterval(loadData, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  if (loading && data.length === 0) {
+    return (
+      <div style={styles.loadingContainer}>
+        <div style={styles.spinner}></div>
+        <p style={styles.loadingText}>Loading emissions data...</p>
+        <p style={{fontSize: '12px', color: '#666', marginTop: '10px'}}>
+          Check console for debug info (F12)
         </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      </div>
+    );
+  }
+
+  if (error && data.length === 0) {
+    return (
+      <div style={styles.loadingContainer}>
+        <p style={styles.errorText}>{error}</p>
+        <button onClick={loadData} style={styles.retryButton}>Retry</button>
+      </div>
+    );
+  }
+
+  // Calculate metrics
+  const latestReading = data[data.length - 1] || {};
+  const overallStatus = getEmissionStatus(latestReading.CO, latestReading.CO2);
+  const avgCO = (data.reduce((sum, d) => sum + d.CO, 0) / data.length).toFixed(1);
+  const avgCO2 = (data.reduce((sum, d) => sum + d.CO2, 0) / data.length).toFixed(1);
+
+  // Status distribution
+  const statusCounts = data.reduce((acc, item) => {
+    const status = getEmissionStatus(item.CO, item.CO2);
+    acc[status] = (acc[status] || 0) + 1;
+    return acc;
+  }, {});
+
+  const pieData = Object.entries(statusCounts).map(([name, value]) => ({
+    name,
+    value
+  }));
+
+  const CHART_COLORS = {
+    Good: COLORS.statusGood,
+    Moderate: COLORS.statusModerate,
+    Alert: COLORS.statusAlert
+  };
+
+  return (
+    <div style={{ backgroundColor: COLORS.background, minHeight: '100vh', padding: '20px' }}>
+      {/* Header */}
+      <div style={{ 
+        backgroundColor: 'white', 
+        padding: '20px', 
+        borderRadius: '8px', 
+        marginBottom: '20px',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+      }}>
+        <h1 style={{ margin: 0, color: COLORS.primary }}>
+          🌍 Real-Time Vehicle Emissions Dashboard
+        </h1>
+        <p style={{ margin: '10px 0 0 0', color: '#666' }}>
+          Last Updated: {lastUpdate?.toLocaleTimeString() || 'Loading...'}
+        </p>
+      </div>
+
+      {/* Summary Cards */}
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
+        gap: '20px', 
+        marginBottom: '20px' 
+      }}>
+        <div style={{
+          backgroundColor: 'white',
+          padding: '20px',
+          borderRadius: '8px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+        }}>
+          <h3 style={{ margin: '0 0 10px 0', color: '#666' }}>Current Status</h3>
+          <p style={{ 
+            fontSize: '32px', 
+            fontWeight: 'bold', 
+            margin: 0,
+            color: getStatusColor(overallStatus)
+          }}>
+            {overallStatus}
+          </p>
+        </div>
+
+        <div style={{
+          backgroundColor: 'white',
+          padding: '20px',
+          borderRadius: '8px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+        }}>
+          <h3 style={{ margin: '0 0 10px 0', color: '#666' }}>Avg CO Level</h3>
+          <p style={{ fontSize: '32px', fontWeight: 'bold', margin: 0, color: COLORS.primary }}>
+            {avgCO} <span style={{ fontSize: '16px' }}>ppm</span>
+          </p>
+        </div>
+
+        <div style={{
+          backgroundColor: 'white',
+          padding: '20px',
+          borderRadius: '8px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+        }}>
+          <h3 style={{ margin: '0 0 10px 0', color: '#666' }}>Avg CO₂ Level</h3>
+          <p style={{ fontSize: '32px', fontWeight: 'bold', margin: 0, color: COLORS.primary }}>
+            {avgCO2} <span style={{ fontSize: '16px' }}>ppm</span>
+          </p>
+        </div>
+
+        <div style={{
+          backgroundColor: 'white',
+          padding: '20px',
+          borderRadius: '8px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+        }}>
+          <h3 style={{ margin: '0 0 10px 0', color: '#666' }}>Active Devices</h3>
+          <p style={{ fontSize: '32px', fontWeight: 'bold', margin: 0, color: COLORS.primary }}>
+            {data.length}
+          </p>
+        </div>
+      </div>
+
+      {/* Charts */}
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', 
+        gap: '20px', 
+        marginBottom: '20px' 
+      }}>
+        {/* Line Chart */}
+        <div style={{
+          backgroundColor: 'white',
+          padding: '20px',
+          borderRadius: '8px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+        }}>
+          <h3 style={{ margin: '0 0 20px 0' }}>Emissions Over Time</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={data}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis 
+                dataKey="timestamp" 
+                tickFormatter={(time) => new Date(time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Line type="monotone" dataKey="CO" stroke="#FF6B6B" name="CO (ppm)" />
+              <Line type="monotone" dataKey="CO2" stroke="#4ECDC4" name="CO₂ (ppm)" />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Pie Chart */}
+        <div style={{
+          backgroundColor: 'white',
+          padding: '20px',
+          borderRadius: '8px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+        }}>
+          <h3 style={{ margin: '0 0 20px 0' }}>Status Distribution</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={pieData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                outerRadius={100}
+                fill="#8884d8"
+                dataKey="value"
+              >
+                {pieData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={CHART_COLORS[entry.name]} />
+                ))}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Data Table */}
+      <div style={{
+        backgroundColor: 'white',
+        padding: '20px',
+        borderRadius: '8px',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+      }}>
+        <h3 style={{ margin: '0 0 20px 0' }}>Recent Readings</h3>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ backgroundColor: COLORS.background }}>
+                <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Device ID</th>
+                <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Location</th>
+                <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>CO (ppm)</th>
+                <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>CO₂ (ppm)</th>
+                <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Status</th>
+                <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.slice(-10).reverse().map((item, index) => {
+                const status = getEmissionStatus(item.CO, item.CO2);
+                return (
+                  <tr key={index} style={{ borderBottom: '1px solid #eee' }}>
+                    <td style={{ padding: '12px' }}>{item.device_id}</td>
+                    <td style={{ padding: '12px' }}>{item.location}</td>
+                    <td style={{ padding: '12px' }}>{item.CO}</td>
+                    <td style={{ padding: '12px' }}>{item.CO2}</td>
+                    <td style={{ padding: '12px' }}>
+                      <span style={{
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        backgroundColor: getStatusColor(status),
+                        color: 'white',
+                        fontSize: '12px',
+                        fontWeight: 'bold'
+                      }}>
+                        {status}
+                      </span>
+                    </td>
+                    <td style={{ padding: '12px' }}>
+                      {new Date(item.timestamp).toLocaleTimeString()}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
-}
+};
 
 export default App;

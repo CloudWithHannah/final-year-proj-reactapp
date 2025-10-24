@@ -1,70 +1,165 @@
-# Getting Started with Create React App
+# 🌍 Vehicle Emissions Monitoring Dashboard
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A real-time, production-ready dashboard for monitoring vehicle emissions across multiple monitoring stations. Built with React and designed for both technical and non-technical users, this dashboard provides comprehensive air quality tracking with intuitive visualizations and actionable insights.
 
-## Available Scripts
+![Dashboard Preview](https://img.shields.io/badge/React-18.x-61DAFB?style=for-the-badge&logo=react&logoColor=white)
+![AWS Amplify](https://img.shields.io/badge/AWS_Amplify-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white)
+![DynamoDB](https://img.shields.io/badge/DynamoDB-4053D6?style=for-the-badge&logo=amazondynamodb&logoColor=white)
 
-In the project directory, you can run:
+---
 
-### `npm start`
+## 📋 Table of Contents
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- [Overview](#overview)
+- [Features](#features)
+- [Technology Stack](#technology-stack)
+- [Architecture](#architecture)
+- [Data Model](#data-model)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Deployment](#deployment)
+- [Usage](#usage)
+- [Project Structure](#project-structure)
+- [Components Breakdown](#components-breakdown)
+- [Environment Variables](#environment-variables)
+- [API Integration](#api-integration)
+- [Styling & Design](#styling--design)
+- [Performance Optimization](#performance-optimization)
+- [Security Considerations](#security-considerations)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
+- [License](#license)
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+---
 
-### `npm test`
+## 🎯 Overview
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+The Vehicle Emissions Monitoring Dashboard is a sophisticated web application designed to track, visualize, and analyze air quality data from multiple vehicle emission monitoring devices. The dashboard provides real-time insights into Carbon Monoxide (CO) and Carbon Dioxide (CO₂) levels across various locations, helping environmental agencies, city planners, and public health officials make data-driven decisions.
 
-### `npm run build`
+### Key Objectives
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- **Real-Time Monitoring:** Automatic data refresh every 30 seconds to ensure up-to-date information
+- **Accessibility:** Non-technical explanations for all metrics and visualizations
+- **Actionable Insights:** Color-coded status indicators and trend forecasting
+- **Responsive Design:** Seamless experience across desktop, tablet, and mobile devices
+- **Data Integrity:** Robust error handling and fallback mechanisms
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+---
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## ✨ Features
 
-### `npm run eject`
+### 1. **Live Summary Cards**
+Three prominent cards displaying critical real-time metrics:
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+- **Carbon Monoxide (CO) Level**
+  - Current reading in parts per million (ppm)
+  - Plain-language explanation of air quality impact
+  - Visual status indicator (Green/Yellow/Red)
+  
+- **Carbon Dioxide (CO₂) Level**
+  - Current reading in parts per million (ppm)
+  - Context about atmospheric conditions
+  - Recommendations for ventilation
+  
+- **Overall Emission Status**
+  - Aggregated assessment across all parameters
+  - Color-coded border for quick visual identification
+  - Status categories: Good, Moderate, Alert
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### 2. **Interactive Time-Series Charts**
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+#### CO Trend Over Time
+- Line chart displaying the last 20 readings
+- X-axis: Time (hourly intervals)
+- Y-axis: CO concentration (ppm)
+- Interactive tooltips on hover
+- Smooth animations and transitions
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+#### CO₂ Trend Over Time
+- Line chart showing CO₂ levels over time
+- Identifies peak traffic hours and patterns
+- Helps correlate emission spikes with events
 
-## Learn More
+### 3. **Distribution Visualization**
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+#### Devices by Emission Status (Pie Chart)
+- Visual breakdown of monitoring device statuses
+- Shows percentage of devices in Good, Moderate, and Alert states
+- Modern color palette with distinct, accessible colors
+- Interactive labels with device counts
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### 4. **Predictive Forecasting**
 
-### Code Splitting
+A simple trend analysis module that:
+- Analyzes the last 5 data points
+- Identifies directional trends (UP/DOWN)
+- Calculates rate of change
+- Provides plain-language predictions
+- Offers contextual recommendations based on trends
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+### 5. **Comprehensive Data Table**
 
-### Analyzing the Bundle Size
+- Displays the 15 most recent readings
+- Columns: Device ID, CO, CO₂, Location, Timestamp, Status
+- Status badges with color coding
+- Sortable and scrollable for easy navigation
+- Responsive design for mobile viewing
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+### 6. **Auto-Refresh Mechanism**
 
-### Making a Progressive Web App
+- Polls data every 30 seconds using `setInterval`
+- Displays "Last Updated" timestamp
+- Graceful error handling with retry logic
+- Loading states during data fetch
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+### 7. **Non-Technical Explanations**
 
-### Advanced Configuration
+Every metric includes contextual information:
+- **What the numbers mean** in practical terms
+- **Health implications** for different exposure levels
+- **Recommended actions** based on current readings
+- **Pattern explanations** for trend charts
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+---
 
-### Deployment
+## 🛠 Technology Stack
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+### Frontend
+- **React 18.x** - Core UI framework using functional components and Hooks
+- **Recharts 2.x** - Declarative charting library for data visualization
+- **CSS-in-JS** - Inline styles for component-level styling
+- **Inter Font Family** - Modern, accessible typography
 
-### `npm run build` fails to minify
+### Backend & Infrastructure
+- **AWS DynamoDB** - NoSQL database for emission readings
+- **AWS Amplify** - Hosting, CI/CD, and deployment pipeline
+- **AWS SDK for JavaScript** - DynamoDB client library
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+### Development Tools
+- **Create React App** - Build toolchain and development server
+- **npm/npx** - Package management
+- **Git** - Version control
+- **ESLint** - Code quality and consistency
+
+### Data Flow
+```
+Monitoring Devices → AWS IoT Core → DynamoDB → React App → User Browser
+```
+
+---
+
+## 🏗 Architecture
+
+### High-Level Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     User's Browser                          │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │           React Single Page Application             │   │
+│  │                                                      │   │
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐         │   │
+│  │  │ Summary  │  │  Charts  │  │  Table   │         │   │
+│  │  │  Cards   │  │Component │  │Component │         │   │
+│  │  └──────────┘  └──────────┘  └──────────┘         │   │
+│  │                                
