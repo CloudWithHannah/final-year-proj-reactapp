@@ -17,11 +17,23 @@ const App = () => {
     setLoading(true);
     setError(null);
     try {
-      const result = await fetchEmissionsData(true); // Explicitly false
+      const result = await fetchEmissionsData(false); // Explicitly false
       console.log('Data loaded:', result); // DEBUG
       console.log('First item:', result[0]); // DEBUG - Look at structure
       setData(result);
       setLastUpdate(new Date());
+      if (sortedResult.length > 0) {
+        const latestReading = sortedResult[sortedResult.length - 1];
+        
+        if (latestReading && latestReading.timestamp) {
+          const sensorTime = new Date(latestReading.timestamp);
+          const browserTime = new Date();
+          const delayInSeconds = (browserTime.getTime() - sensorTime.getTime()) / 1000;
+          
+          console.log(`End-to-end delay: ${delayInSeconds.toFixed(2)} seconds`);
+          setCurrentDelay(delayInSeconds.toFixed(2));
+        }
+      }
     } catch (err) {
       console.error('Error fetching data:', err);
       setError('Failed to load emissions data. Please try again.');
