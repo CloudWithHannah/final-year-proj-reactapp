@@ -18,11 +18,12 @@ const App = () => {
     setError(null);
     try {
       const result = await fetchEmissionsData(false); // Explicitly false
-      console.log('Data loaded:', result); // DEBUG
+      console.log('Data loaded from API\n\n\n\n:', result); // DEBUG
       console.log('First item:', result[0]); // DEBUG - Look at structure
       setData(result);
       setLastUpdate(new Date());
-      if (sortedResult.length > 0) {
+      const sortedResult=result
+      if (true) {
         const latestReading = sortedResult[sortedResult.length - 1];
         
         if (latestReading && latestReading.timestamp) {
@@ -31,7 +32,6 @@ const App = () => {
           const delayInSeconds = (browserTime.getTime() - sensorTime.getTime()) / 1000;
           
           console.log(`End-to-end delay: ${delayInSeconds.toFixed(2)} seconds`);
-          setCurrentDelay(delayInSeconds.toFixed(2));
         }
       }
     } catch (err) {
@@ -44,7 +44,7 @@ const App = () => {
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 30000);
+    const interval = setInterval(loadData, 3000);
     return () => clearInterval(interval);
   }, []);
 
