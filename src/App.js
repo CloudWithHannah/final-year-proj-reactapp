@@ -10,19 +10,37 @@ const App = () => {
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(null);
   const [error, setError] = useState(null);
+  const [sensorActive, setSensorActive] = useState(true); // NEW: Track sensor status
 
   const loadData = async () => {
     console.log('Starting to load data...');
-    console.log('REACT_APP_USE_MOCK_DATA:', process.env.REACT_APP_USE_MOCK_DATA); // DEBUG
+    console.log('REACT_APP_USE_MOCK_DATA:', process.env.REACT_APP_USE_MOCK_DATA);
     setLoading(true);
     setError(null);
     try {
       const result = await fetchEmissionsData(false); // Explicitly false
-      console.log('Data loaded from API\n\n\n\n:', result); // DEBUG
-      console.log('First item:', result[0]); // DEBUG - Look at structure
+      console.log('Data loaded from API:', result);
+      console.log('First item:', result[0]);
       setData(result);
       setLastUpdate(new Date());
-      const sortedResult=result
+      
+      // NEW: Check if sensors are actively transmitting (data within last 5 minutes)
+      if (result.length > 0) {
+        const latestTimestamp = new Date(result[result.length - 1].timestamp);
+        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+        const isActive = latestTimestamp > fiveMinutesAgo;
+        setSensorActive(isActive);
+        
+        if (!isActive) {
+          const minutesSince = Math.floor((Date.now() - latestTimestamp) / 60000);
+          console.warn(`⚠️ Sensors inactive. Last reading was ${minutesSince} minutes ago`);
+        }
+      } else {
+        setSensorActive(false);
+        console.warn('⚠️ No sensor data available');
+      }
+
+      const sortedResult = result;
       if (true) {
         const latestReading = sortedResult[sortedResult.length - 1];
         
@@ -37,6 +55,7 @@ const App = () => {
     } catch (err) {
       console.error('Error fetching data:', err);
       setError('Failed to load emissions data. Please try again.');
+      setSensorActive(false); // NEW: Mark sensors as inactive on error
     } finally {
       setLoading(false);
     }
@@ -95,7 +114,7 @@ const App = () => {
 
   return (
     <div style={{ backgroundColor: COLORS.background, minHeight: '100vh', padding: '20px' }}>
-      {/* Header */}
+      {/* Header - UPDATED with sensor status */}
       <div style={{ 
         backgroundColor: 'white', 
         padding: '20px', 
@@ -103,12 +122,34 @@ const App = () => {
         marginBottom: '20px',
         boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
       }}>
-        <h1 style={{ margin: 0, color: COLORS.primary }}>
-          🌍 Real-Time Vehicle Emissions Dashboard
-        </h1>
-        <p style={{ margin: '10px 0 0 0', color: '#666' }}>
-          Last Updated: {lastUpdate?.toLocaleTimeString() || 'Loading...'}
-        </p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
+          <div>
+            <h1 style={{ margin: 0, color: COLORS.primary }}>
+              🌍 Real-Time Vehicle Emissions Dashboard
+            </h1>
+            <p style={{ margin: '10px 0 0 0', color: '#666' }}>
+              Last Updated: {lastUpdate?.toLocaleTimeString() || 'Loading...'}
+            </p>
+          </div>
+          
+          {/* NEW: Sensor Status Badge */}
+          <div style={{
+            padding: '10px 20px',
+            borderRadius: '20px',
+            backgroundColor: sensorActive ? '#E8F5E9' : '#FFF3E0',
+            color: sensorActive ? '#2E7D32' : '#E65100',
+            border: `2px solid ${sensorActive ? '#81C784' : '#FFB74D'}`,
+            fontWeight: 'bold',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <span style={{ fontSize: '18px' }}>
+              {sensorActive ? '🟢' : '🟡'}
+            </span>
+            {sensorActive ? 'Sensors Active' : 'Sensors Inactive'}
+          </div>
+        </div>
       </div>
 
       {/* Summary Cards */}
