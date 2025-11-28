@@ -89,10 +89,13 @@ const App = () => {
   }
 
   // Calculate metrics
-  const latestReading = data[data.length - 1] || {};
-  const overallStatus = getEmissionStatus(latestReading.CO, latestReading.CO2);
-  const avgCO = (data.reduce((sum, d) => sum + d.CO, 0) / data.length).toFixed(1);
-  const avgCO2 = (data.reduce((sum, d) => sum + d.CO2, 0) / data.length).toFixed(1);
+const latestReading = data[data.length - 1] || {};
+const overallStatus = getEmissionStatus(latestReading.CO, latestReading.CO2);
+const avgCO = (data.reduce((sum, d) => sum + d.CO, 0) / data.length).toFixed(1);
+const avgCO2 = (data.reduce((sum, d) => sum + d.CO2, 0) / data.length).toFixed(1);
+
+// Count unique devices
+const uniqueDevices = new Set(data.map(item => item.device_id)).size;
 
   // Status distribution
   const statusCounts = data.reduce((acc, item) => {
