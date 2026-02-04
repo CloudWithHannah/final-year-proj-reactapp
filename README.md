@@ -34,7 +34,7 @@ A real-time, production-ready dashboard for monitoring vehicle emissions across 
 
 ## 🎯 Overview
 
-The Vehicle Emissions Monitoring Dashboard is a sophisticated web application designed to track, visualize, and analyze air quality data from multiple vehicle emission monitoring devices. The dashboard provides real-time insights into Carbon Monoxide (CO) and Carbon Dioxide (CO₂) levels across various locations, helping environmental agencies, city planners, and public health officials make data-driven decisions. [You can find a complete STEP-BY-STEP GUIDE ON THIS PROJECT HERE:](https://dev.to/aws-builders/aws-serverless-guide-securing-iot-data-ingestion-with-api-gateway-lambda-and-dynamodb-2hl5)
+The Vehicle Emissions Monitoring Dashboard is a sophisticated web application designed to track, visualize, and analyze air quality data from multiple vehicle emission monitoring devices. The dashboard provides real-time insights into Carbon Monoxide (CO) and Carbon Dioxide (CO₂) levels across various locations, helping environmental agencies, city planners, and public health officials make data-driven decisions. [You can find a complete STEP-BY-STEP GUIDE ON THIS PROJECT on my Dev.to blog](https://dev.to/aws-builders/aws-serverless-guide-securing-iot-data-ingestion-with-api-gateway-lambda-and-dynamodb-2hl5)
 
 ### Key Objectives
 
